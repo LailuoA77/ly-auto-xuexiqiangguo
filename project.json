@@ -1,0 +1,28 @@
+{
+  "assets": [],
+  "build": {
+    "build_id": "C38FDD86-179",
+    "build_number": 179,
+    "build_time": 1620219370773,
+    "release": false
+  },
+  "encryptLevel": 0,
+  "useFeatures": [],
+  "icon": "res/logo.png",
+  "launchConfig": {
+    "displaySplash": true,
+    "hideLogs": false,
+    "splashText": "Powered by Auto.js Pro",
+    "stableMode": false
+  },
+  "main": "main.js",
+  "name": "影自强国",
+  "optimization": {
+    "removeOpenCv": false,
+    "unusedResources": false
+  },
+  "packageName": "lynuo.auto.xxqg",
+  "scripts": {},
+  "versionCode": 2,
+  "versionName": "ds01"
+}
