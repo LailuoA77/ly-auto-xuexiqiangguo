@@ -18,7 +18,10 @@
 本软件基于autojs v7.0框架制作，感谢以下兄弟提供代码，并且是基于他们代码加以修改
         
  ##       特别鸣谢：
-晴天、翻滚的茄子、AIQiangguo、徐子越、xyz    
+晴天、翻滚的茄子、AIQiangguo、徐子越、xyz
+## 基于
+https://github.com/zhuxuedefeng
+https://github.com/Gingmzmzx
 
 正常执行可得50+分，具体看情况         
 请确保进入学习强国时位于主界面，模拟点击从主界面开始"
