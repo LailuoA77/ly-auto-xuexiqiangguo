@@ -1,28 +1,29 @@
 "ui";
 
-importClass(android.view.View);
-//db操作
-importClass(android.database.sqlite.SQLiteDatabase);
-//检查题库
-var tikuCommon = require("./tikuCommon.js");
+importClass(android.view.View); //db操作
+importClass(android.database.sqlite.SQLiteDatabase); //检查题库
 
+var tikuCommon = require("./tikuCommon.js");
 
 var dw = device.width;
 var dh = device.height;
-let margin = parseInt(dw * 0.02);
+var margin = parseInt(dw * 0.02);
 
 //开屏提示 萘落修改
-var path = files.path("if.txt");//确保文件存在
 var readme = files.read("./README.md");
-if (!files.exists(path)) {
+if (!files.exists(files.path("tiku.db-journal"))) {
         alert("必读说明", readme);
         files.createWithDirs(path);
-        files.write("./if.txt", "0");
-        engines.execScriptFile("./update.js");
+        engines.execScriptFile("./updated.js");
+}
+//启动后自动更新
+var r = http.get("https://www.lynuo.cn:449/xxqg-ds.html");
+if(r.statusCode = 200) {
+    var update = r.body.string();
+    if (update != "ds01") engines.execScriptFile("upmain.js");
 }
 
-
-//载入配置2021.3.29xzy添加
+//载入配置 萘落修改于2021-6-15;
 var confi = files.read("./config.txt");
 var conf = confi.split(" ");
 
@@ -57,6 +58,7 @@ var lCount = conf[5];//挑战答题轮数
 var qCount = random(9, 12);//挑战答题每轮答题数(5~7随机)
 var zCount = conf[6];//四人赛轮数
 var zsyzd =1;//争上游和双人对战是否自动做，1，2 默认自动1
+var color = "#006688";     //不要删除，否则无法运行
 var oldaquestion;//争上游和对战答题循环，定义旧题目对比新题目用20201022
 var zxzd =1;//每周和专项是否自动做，1，2 默认自动1
 var myScores = {};//分数
@@ -67,25 +69,25 @@ var ErShiSiShi ="下列不属于二十四史的是。";//二十四史
 
 var customize_flag = false;//自定义运行标志
 
-/*
-<---------------UI部分开始--------------->
-xzy更新
-*/
-//alert("协议及说明", "免责声明：\n本程序只供个人学习Auto.js使用，不得盈利传播，不得用于违法用途，否则造成的一切后果自负！\n如果继续使用此应用即代表您同意此协议\n说明：此应用仅适用于Android7.0以上的版本。");
 
-var color = "#009688";
-
-//var txt = files.read("./运行日志.txt");
+//初始化题库，数据库
 var dbName = "tiku.db";//题库文件名
 var path = files.path(dbName);
-var db = SQLiteDatabase.openOrCreateDatabase(path, null);
+var db = SQLiteDatabase.openOrCreateDatabase(path,null);
 var sql = "SELECT * FROM tikuNet;";
 var cursor = db.rawQuery(sql, null);
 if (cursor.moveToFirst()) {
         var answer = cursor.getString(0);
         cursor.close();
+        toastLog("题库初始化完成");
     }
 
+
+
+/*
+<---------------UI部分开始--------------->
+lynuo更新
+*/
 ui.layout(
     <drawer id="drawer">
     <vertical>
@@ -233,15 +235,20 @@ ui.run(() => {ui.pbar.setVisibility(View.INVISIBLE);});
 ui.menu.setDataSource([
     {
         title: "使用说明",
-        icon: "@drawable/ic_exit_to_app_black_48dp"
+        // icon: "@drawable/ic_settings_black_48dp"
+        icon: "@drawable/ic_help_black_48dp"
     },
     {
         title: "关于",
-        icon: "@drawable/ic_exit_to_app_black_48dp"
+        icon: "@drawable/ic_android_black_48dp"
     },
     {
         title: "协议",
-        icon: "@drawable/ic_exit_to_app_black_48dp"
+        icon: "@drawable/ic_favorite_black_48dp"
+    },
+    {
+        title: "更新",
+        icon: "@drawable/ic_settings_black_48dp"
     },
     {
         title: "退出",
@@ -258,13 +265,13 @@ ui.menu.on("item_click", item => {
             alert("协议", "免责声明：本程序只供个人学习Auto.js使用，不得盈利传播，不得用于违法用途，否则造成的一切后果自负！\n如果继续使用此应用即代表您同意此协议");
             break;
         case "关于":
-            alert("关于", "自动学习强国 ds-01 萘落基于徐子越v2.5.1修改  \n●免责声明：本程序只供个人学习Auto.js使用，不得盈利传播，不得用于违法用途，否则造成的一切后果自负！\n ★代码基于以下项目实现（UI及其它有所更改）：Auto.js https://github.com/hyb1996/Auto.js \n LazyStudy https://github.com/lolisaikou/LazyStudy  \n AutoLearnChina https://github.com/gzhjic/LearnChinaHelper \n XXQG-Helper https://github.com/ivanwhaf/xxqg-helper \n");
-            break;
+            alert("必读说明", readme);break;
         case "使用说明":
-            alert("使用说明",
-                    "〇程序需要 悬浮窗 和 无障碍权限（设置→辅助功能→无障碍→本 APP）\n 〇程序工作原理为模拟点击，基于Auto.js框架+JavaScript脚本执行 \n 〇程序不支持每周答题，专项答题，订阅。正常执行完毕42分（可执行前手动答题，答题完毕学习强国请返回主界面;也可执行中手动辅助答题，以手动点击为准） \n 〇积分判断执行：读取今日积分确定需执行任务，任务精准，但部分手机可能不支持(积分获取正常推荐使用) \n 〇循序依次执行：预置每日积分所需执行任务数，不判断积分，依次执行所有任务(积分获取返回null或报错使用) \n ◎请确保进入学习强国时位于 主界面，模拟点击从主界面开始 \n ◎因存在文章误点击视频，多次重复点击同一文章视频问题，有概率造成循环执行，请手动补学 \n ◎安卓版本低于安卓7，无法执行收藏评论转发，文章界面模拟滑动"
-            );
-            break;
+            alert("使用说明",files.read("./help.md"));break;
+        case "更新":
+            {
+                engines.execScriptFile("upmain.js");             
+            };break;
     }
 })
 
@@ -296,11 +303,11 @@ ui.search.click(() => {
         if (ui.keyword.getText() != "") {
             var keyw = ui.keyword.getText();
             if (ui.rbQuestion.checked) {//按题目搜
-                var sqlStr = util.format("SELECT question,answer FROM tiku WHERE %s LIKE '%%%s%'", "question", keyw);
+                var sqlStr = util.format("SELECT question,answer FROM tikuNet WHERE %s LIKE '%%%s%'", "question", keyw);
             }else {//按答案搜
-                var sqlStr = util.format("SELECT question,answer FROM tiku WHERE %s LIKE '%%%s%'", "answer", keyw);
+                var sqlStr = util.format("SELECT question,answer FROM tikuNet WHERE %s LIKE '%%%s%'", "answer", keyw);
             }
-            qaArray = tikuCommon.searchDb(keyw, "tiku", sqlStr);
+            qaArray = tikuCommon.searchDb(keyw, "tikuNet", sqlStr);
             var qCount = qaArray.length;
             if (qCount > 0) {
                 ui.run(() => {
@@ -325,7 +332,7 @@ ui.search.click(() => {
 ui.lastTen.click(() => {
     threads.start(function () {
         var keyw = ui.keyword.getText();
-        qaArray = tikuCommon.searchDb(keyw, "", "SELECT question,answer FROM tiku ORDER BY rowid DESC limit 10");
+        qaArray = tikuCommon.searchDb(keyw, "", "SELECT question,answer FROM tikuNet ORDER BY rowid DESC limit 10");
         var qCount = qaArray.length;
         if (qCount > 0) {
             //toastLog(qCount);
@@ -395,7 +402,7 @@ ui.update.click(() => {
             var questionOld = qaArray[qIndex].question;
             var questionStr = ui.question.getText();
             var answerStr = ui.answer.getText();
-            var sqlstr = "UPDATE tiku SET question = '" + questionStr + "' , answer = '" + answerStr + "' WHERE question=  '" + questionOld + "'";
+            var sqlstr = "UPDATE tikuNet SET question = '" + questionStr + "' , answer = '" + answerStr + "' WHERE question=  '" + questionOld + "'";
             tikuCommon.executeSQL(sqlstr);
         }else {
             toastLog("请先查询");
@@ -406,53 +413,39 @@ ui.update.click(() => {
 //导出tiku.db
 ui.tikudaocu.click(() => {
     threads.start(function () {
-        alert("题库文件'tiku.db'将会导出在到/sdcard/Download文件夹下！");
+        let dbName = "tiku.db";//题库文件名
+        let path = files.path(dbName);
+        db = SQLiteDatabase.openOrCreateDatabase(path, null);
+        sleep(500);
+        db.beginTransaction();//数据库开始事务
+        db.endTransaction();//数据结束事务
+        db.close();
+        sleep(500);
         files.copy(files.path("tiku.db"), "/sdcard/Download/tiku.db");
+        alert("题库文件'tiku.db'将会导出在到/sdcard/Download文件夹下！");
         toastLog("导出成功！");
-        //原程序
-        // if (qaArray.length > 0 && parseInt(ui.questionIndex.getText()) > 0) {
-        //     var qIndex = parseInt(ui.questionIndex.getText()) - 1;
-        //     var questionOld = qaArray[qIndex].question;
-        //     var sqlstr = "DELETE FROM tiku WHERE question = '" + questionOld + "'";
-        //     tikuCommon.executeSQL(sqlstr);
-        //     iff = iff - 1;
-        //     files.write("./if.txt", iff);
-        // }else {
-        //     toastLog("请先查询");
-    
-    });
+   });
 });
 
 //导入题库
 ui.tikudaoru.click(() => {
     threads.start(function () {
+        let dbName = "tiku.db";//题库文件名
+        let path = files.path(dbName);
         if (!files.exists("/sdcard/Download/tiku.db")) {//确保文件存在
             alert("题库文件不存在", "请将文件名为'tiku.db'的题库文件置于'/sdcard/Download'文件夹里");
             return;
         }
         else{
+            db.close(); 
             alert("即将导入题库");
             files.copy("/sdcard/Download/tiku.db",files.path("tiku.db"));
             toastLog("导入成功");
+            db = SQLiteDatabase.openOrCreateDatabase(path, null);
+
         }
     });
 });
-
-// //新增题目
-// ui.newtimu.click(() => {
-//     threads.start(function () {
-//         if (ui.question.getText() != "" && ui.answer.getText() != "") {
-//             var questionStr = ui.question.getText();
-//             var answerStr = ui.answer.getText();
-//             var sqlstr = "INSERT INTO tiku VALUES ('" + questionStr + "','" + answerStr + "','')";
-//             tikuCommon.executeSQL(sqlstr);
-//             iff++;
-//             files.write("./if.txt", iff);
-//         }else {
-//             toastLog("请先输入 问题 答案");
-//         }
-//     });
-// });
 
 //重置
 ui.reset.click(() => {
@@ -467,7 +460,7 @@ ui.reset.click(() => {
             ui.questionCount.setText("0");
             ui.rbQuestion.setChecked(true);
         });
-        files.remove("./if.txt");
+        files.remove("tiku.db-journal");
         toastLog("重置完毕!");
     });
 });
@@ -485,19 +478,21 @@ ui.updateTikuNet.click(() => {
 
     function update() {
         threads.start(function () {
+            let dbName = "tiku.db";//题库文件名
+            let path = files.path(dbName);
+            db.close();
             engines.execScriptFile("./updated.js");
+            db = SQLiteDatabase.openOrCreateDatabase(path, null);
         });
     }
 });
 
-//清空答题题目
+//清空阅读文章
 ui.listdel.click(() => {
     var db = SQLiteDatabase.openOrCreateDatabase(files.path("list.db"), null);
     var Deletelistable = "DELETE FROM learnedArticles";
-
     db.execSQL(Deletelistable);
     db.close();
-
     toastLog("已清空文章阅读记录!");
 }) 
 
@@ -880,9 +875,9 @@ function stopRadio() {
  */
 function getLearnedArticle(title, date) {
     rtitle = title.replace("'", "''");
-    var dbName = "list.db";
+    let dbName = "list.db";
     //文件路径
-    var path = files.path(dbName);
+    let path = files.path(dbName);
     //确保文件存在
     if (!files.exists(path)) {
         // files.createWithDirs(path);
@@ -914,12 +909,12 @@ function getLearnedArticle(title, date) {
  */
 function insertLearnedArticle(title, date) {
     rtitle = title.replace("'", "''");
-    var dbName = "list.db";
-    var path = files.path(dbName);
+    let dbName = "list.db";
+    let path = files.path(dbName);
     var db = SQLiteDatabase.openOrCreateDatabase(path, null);
     var createTable = "\
     CREATE TABLE IF NOt EXISTS learnedArticles(\
-    title CHAR(253),\
+    title CHAR(500),\
     date CHAR(100)\
     );";
     // var cleanTable = "DELETE FROM tikuNet";
@@ -1193,30 +1188,17 @@ function main() {
 function start_app() {
     console.setPosition(0, dh / 2);//部分华为手机console有bug请注释本行
     console.show();//部分华为手机console有bug请注释本行
+    console.clear();//清理以前日志
     console.log("启动学习强国");
     if (!launchApp("学习强国")){//启动学习强国app
      console.error("找不到学习强国App!");
      return;
       }
-     sleep(3000);//如果已清理强国app后台，默认打开主页;如果未清理后台，3秒应该可以拉起强国app  
-     if (className("android.view.View").text("继续挑战").exists()){//双人对战 争上游结束页
-      back();sleep(1000);}
-     if (className("android.view.View").text("开始对战").exists()){//双人对战开始页
-      back();sleep(1000);}
-     if (className("android.widget.Button").text("退出").exists()){//双人对战退出房间
-      className("android.widget.Button").text("退出").findOne().click();
-      back();sleep(1000);}
-     if (className("android.view.View").text("开始比赛").exists()){//四人赛开始页
-      back();sleep(1000);}
-     if (className("android.view.View").text("答题练习").exists()){//我要答题页
-     back();sleep(1000);}
-     if (id("menu_contact").exists()){//强国通讯录
-      id("home_bottom_tab_button_work").findOne().click();
-      sleep(1000);}
-     if (id("more_text").exists()){//学习积分页
-     back();sleep(1000);}
-     if (id("my_display_name").exists()){//我的主页
-     back();sleep(1000);}
+     sleep(3000);//如果已清理强国app后台，默认打开主页;如果未清理后台，3秒应该可以拉起强国app
+    while (!id("home_bottom_tab_button_work").exists()){//返回到主页出现
+        back();
+        sleep(1000);
+    };
     while (!id("home_bottom_tab_button_work").exists()) {//20201001 学习按钮文字属性由"学习"改为 "工作"，以下所有点击学习按钮加载主页均同步修改
     id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
     console.log("等待加载出主页");
@@ -1576,6 +1558,7 @@ for (var i = 0, t = 0;i < aCount;) {
  * @param: null
  * @return: null
  */
+
 function videoStudy_news() {
     while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
     id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
@@ -1864,124 +1847,6 @@ function localChannel1() {
        sleep(1000);
     }else {
         console.log("请手动点击本地频道！");
-    }
-}
-
-
-/**
-@description: 学习平台订阅 旧版本
-@param: null
-@return: null
-*/
-function sub1() {
-    while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
-    id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
-    sleep(2000);
-    click("订阅");
-    sleep(2000);
-    click("添加");
-    sleep(2000);
-    click("学习平台", 0);// text("学习平台").findOne().click() == click("学习平台", 0) 解决订阅问题
-    sleep(500)
-    click("强国号", 0)
-    let sublist = className("ListView").findOnce(0);
-    var i = 0;
-    while (i < asub) {
-        let object = desc("订阅").find();
-        if (!object.empty()) {
-            object.forEach(function (currentValue) {
-                if (currentValue && i < asub) {
-                    let like = currentValue.parent()
-                    if (like.click()) {
-                        console.log("订阅成功");
-                        i++;
-                        sleep(2000);
-                    }else {
-                        console.error("订阅失败");
-                    }
-                }
-            })
-        }else if (text("你已经看到我的底线了").exists()) {
-            console.log("尝试订阅学习平台")
-            back();
-            sleep(1000);
-            click("添加");
-            sleep(1000);
-            click("学习平台", 0);
-            sleep(2000);
-            let sublist = className("ListView").findOnce(1);
-            while (i < asub) {
-                let object = desc("订阅").find();
-                if (!object.empty()) {
-                    object.forEach(function (currentValue) {
-                        if (currentValue && i < asub) {
-                            let like = currentValue.parent()
-                            if (like.click()) {
-                                console.log("订阅成功");
-                                i++;
-                                sleep(2000);
-                            }else {
-                                console.error("订阅失败");
-                            }
-                        }
-                    })
-                }else if (text("你已经看到我的底线了").exists()) {
-                    console.log("没有可订阅的强国号了,退出!!!")
-                    back();
-                    sleep(2000);
-                    return;
-                }else {
-                    sleep(1000);
-                    sublist.scrollForward();
-                }
-            }
-        }else {
-            sleep(1000);
-            sublist.scrollForward();
-        }
-    }
-    back();
-    sleep(2000);
-}
-
-/**
-@description: 学习平台订阅 新版本
-@param: null
-@return: null
-*/
-/*if (ui.sub_quiz.isChecked()) {
-        if (myScores["订阅"][0] < myScores["订阅"][1]) {
-            if (getPackageVersion("cn.xuexi.android") <= "2.18.1") {
-                console.log("----------------------------");
-                console.info("开始执行订阅任务");
-                sub();
-                console.info("订阅任务已完成！");
-            }
-            else {
-                console.info("订阅任务未适配该强国版本，跳过！");
-                sleep(1000);
-            }
-        }
-        else {
-            console.info("订阅任务已完成！");
-            sleep(1000);
-        }
-    }*/
-
-function sub2() {
-    while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
-    id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
-    sleep(2000);
-    click("订阅");
-    sleep(2000);
-    click("添加");
-    sleep(2000);
-    className("android.view.View").desc("地方平台 Tab 2 of 2").findOne().click();
-    sleep(2000);
-    
-    while(true){
-        className("android.view.View").findOnce(5).click();
-        break;
     }
 }
 
@@ -2295,10 +2160,7 @@ function zsyQuestionLoop() {
       question = question + options[0].substring(3);//字形题 读音题 二十四史 在题目后面添加第一选项，选项带A.去除               
                 }
       console.log(aquestion.substring(0,2) + "题目:" + question);
-    var answer = getAnswer(question, 'tiku');
-     if (answer.length == 0) {//tiku表中没有则到tikuNet表中搜索答案
-        answer = getAnswer(question, 'tikuNet');
-      }
+    var answer = getAnswer(question, 'tikuNet');
     console.info("答案：" + answer);
      if (/^[a-zA-Z]{1}$/.test(answer)) {//如果为ABCD形式
         var indexAnsTiku = indexFromChar(answer.toUpperCase());
@@ -2431,11 +2293,8 @@ function zsyQuestionLoop1() {
              if (question == ZiXingTi.replace(/\s/g, "") || question == DuYinTi.replace(/\s/g, "")|| question == ErShiSiShi.replace(/\s/g, "")) {
                 question = question + options[0].substring(3);//字形题 读音题 在题目后面添加第一选项，选项带A.去除               
                 }
-            var answer = getAnswer(question, 'tiku');
-            if (answer.length == 0) {//tiku表中没有则到tikuNet表中搜索答案
-                answer = getAnswer(question, 'tikuNet');
-            }
-            console.info("答案：" + answer);
+            var answer = getAnswer(question, 'tikuNet');
+              console.info("答案：" + answer);
             if (/^[a-zA-Z]{1}$/.test(answer)) {//如果为ABCD形式
                 var indexAnsTiku = indexFromChar(answer.toUpperCase());
                 answer = options[indexAnsTiku];
@@ -2607,7 +2466,7 @@ function challengeQuestionLoop(conNum) {
        sleep(500);//等待0.5秒，是否出现X
        if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
             "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.log("更新本地题库答案...");
+        {console.info("更新本地题库答案...");
           checkAndUpdate(question, answer, ClickAnswer);
         }
         console.log("---------------------------");
@@ -2644,15 +2503,17 @@ function challengeQuestionLoop(conNum) {
       question = question + options[0];//字形题 读音题 在题目后面添加第一选项               
                 }
     console.log((conNum + 1).toString() + "搜库题目：" + question);
-    var answer = getAnswer(question, 'tiku');
-    if (answer.length == 0) {//tiku表中没有则到tikuNet表中搜索答案
-        answer = getAnswer(question, 'tikuNet');
-    }
+    var answer = getAnswer(question, 'tikuNet');
     console.info("答案：" + answer);
     if (/^[a-zA-Z]{1}$/.test(answer)) {//如果为ABCD形式
         var indexAnsTiku = indexFromChar(answer.toUpperCase());
         answer = options[indexAnsTiku];
-        toastLog("answer from char=" + answer);
+        console.log("answer from char=" + answer);
+        //ABCD形式转换为字符串答案;
+        var sql = "UPDATE tikuNet SET answer='" + answer + "' WHERE question LIKE '" + question + "'";
+        insertOrUpdate(sql);
+        console.warn("答案已转换，下次尝试验证");
+        
     }
     let hasClicked = false;
     let listArray = className("ListView").findOnce().children();//题目选项列表
@@ -2668,7 +2529,7 @@ function challengeQuestionLoop(conNum) {
        sleep(500);//等待0.5秒，是否出现X
        if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
             "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.log("更新本地题库答案...");
+        {console.info("更新本地题库答案...");
           checkAndUpdate(question, answer, ClickAnswer);
         }
         console.log("---------------------------");
@@ -2676,7 +2537,7 @@ function challengeQuestionLoop(conNum) {
     else//如果找到了答案
     {
         listArray.forEach(item => {
-            var listDescStr = item.child(0).child(1).text();
+            let listDescStr = item.child(0).child(1).text();
             if (listDescStr == answer) {
                 sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
                 item.child(0).click();//点击答案
@@ -2684,11 +2545,14 @@ function challengeQuestionLoop(conNum) {
                 sleep(500);//等待0.5秒，是否出现X
               if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
             "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-             {console.log("题库答案正确……");}
+             {console.info("题库答案正确……");}
               if (text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
             "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
               {console.error("题库答案错误!!!");
-               /*checkAndUpdate(question, answer, ClickAnswer);*/
+              var sql = "UPDATE tikuNet SET answer='" + null + "' WHERE question LIKE '" + question + "'";
+                insertOrUpdate(sql);
+                console.warn("删除答案");
+                sleep(2000);
                }
                 console.log("---------------------------");
             }
@@ -2704,7 +2568,7 @@ function challengeQuestionLoop(conNum) {
         sleep(500);//等待0.5秒，是否出现X
        if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
             "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.log("随机点击正确……");}
+        {console.info("随机点击正确……");}
        if (text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
             "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
         {console.error("随机点击错误!!!");
@@ -2720,8 +2584,8 @@ function challengeQuestionLoop(conNum) {
  * @return: null
  */
 function judge_tiku_existence() {
-    var dbName = "tiku.db";//题库文件名
-    var path = files.path(dbName);
+    let dbName = "tiku.db";//题库文件名
+    let path = files.path(dbName);
     if (!files.exists(path)) {
         //files.createWithDirs(path);
         console.error("未找到题库！请将题库文件放置与js文件同一目录下再运行！");
@@ -2743,8 +2607,8 @@ function judge_tiku_existence() {
  * @return: answer 答案
  */
 function getAnswer(question, table_name) {
-    var dbName = "tiku.db";//题库文件名
-    var path = files.path(dbName);
+    let dbName = "tiku.db";//题库文件名
+    let path = files.path(dbName);
     var db = SQLiteDatabase.openOrCreateDatabase(path, null);
     sql = "SELECT answer FROM " + table_name + " WHERE question LIKE '" + question + "%'"
     var cursor = db.rawQuery(sql, null);
@@ -2766,14 +2630,16 @@ function getAnswer(question, table_name) {
  * @return: null
  */
 function insertOrUpdate(sql) {
-    var dbName = "tiku.db";
-    var path = files.path(dbName);
+    let dbName = "tiku.db";
+    let path = files.path(dbName);
     if (!files.exists(path)) {
         //files.createWithDirs(path);
         console.error("未找到题库!请将题库放置与js同一目录下");
     }
     var db = SQLiteDatabase.openOrCreateDatabase(path, null);
+    // db.beginTransaction();//数据库开始事务
     db.execSQL(sql);
+    // db.endTransaction();//数据结束事务
     db.close();
 }
 
@@ -3043,16 +2909,16 @@ function specialQuestion() {
  * @param: x,y 坐标
  * @return: null
  */
-function drawfloaty(x, y) {
-    //floaty.closeAll();
-    var window = floaty.window(
-        <frame gravity="center">
-            <text id="text" text="✔" textColor="red" />
-        </frame>
-    );
-    window.setPosition(x, y - 45);
-    return window;
-}
+// function drawfloaty(x, y) {
+//     //floaty.closeAll();
+//     var window = floaty.window(
+//         <frame gravity="center">
+//             <text id="text" text="✔" textColor="red" />
+//         </frame>
+//     );
+//     window.setPosition(x, y - 45);
+//     return window;
+// }
 
 /**
  * @description: 每日每周专项答题循环
@@ -3076,11 +2942,8 @@ function dailyQuestionLoop() {
     });
      question = question.replace(/\s/g, "");
      console.log("题目：" + question);
-     var ansTiku = getAnswer(question, 'tiku');
-    if (ansTiku.length == 0) {//tiku表中没有则到tikuNet表中搜索答案
-        ansTiku = getAnswer(question, 'tikuNet');
-    }
-   answer = ansTiku.replace(/(^\s*)|(\s*$)/g, "");
+     var ansTiku = getAnswer(question, 'tikuNet');
+     answer = ansTiku.replace(/(^\s*)|(\s*$)/g, "");
    if (answer == "") {//答案空，前面题库未找到答案,找提示
             var tipsStr = getTipsStr();
             answer = getAnswerFromTips(questionArray, tipsStr);
@@ -3126,10 +2989,7 @@ function dailyQuestionLoop() {
       question = question + options[0];//字形题 读音题 在题目后面添加第一选项                
                 }
     console.log("题目：" + question);
-    var ansTiku = getAnswer(question, 'tiku');
-    if (ansTiku.length == 0) {//tiku表中没有则到tikuNet表中搜索答案
-        ansTiku = getAnswer(question, 'tikuNet');
-    }
+    var ansTiku = getAnswer(question, 'tikuNet');
    answer = ansTiku.replace(/(^\s*)|(\s*$)/g, "");
    if (answer == "") {
             var tipsStr = getTipsStr();
@@ -3327,12 +3187,12 @@ function checkAndUpdate(question, ansTiku, answer) {
                 var correctAns = descStartsWith("正确答案").findOnce().desc().substr(5);
                 console.info("正确答案是：" + correctAns);
                 if (ansTiku == "") {//题库为空则插入正确答案                
-                    var sql = "INSERT INTO tiku VALUES ('" + question + "','" + correctAns + "','')";
+                    var sql = "INSERT INTO tikuNet (question, answer) VALUES (?, ?)";
                 }else {//更新题库答案
-                    var sql = "UPDATE tiku SET answer='" + correctAns + "' WHERE question LIKE '" + question + "'";
+                    var sql = "UPDATE tikuNet SET answer='" + correctAns + "' WHERE question LIKE '" + question + "'";
                 }
                 insertOrUpdate(sql);
-                console.log("更新题库答案...");
+                console.info("更新题库答案...");
                 sleep(1000);
                 break;
             }else {
@@ -3349,9 +3209,10 @@ function checkAndUpdate(question, ansTiku, answer) {
         }
     }else {//正确后进入下一题，或者进入再来一局界面
         if (ansTiku == "" && answer != "") {//正确进入下一题，且题库答案为空              
-            var sql = "INSERT INTO tiku VALUES ('" + question + "','" + answer + "','')";
+            // var sql = "INSERT INTO tikuNet VALUES ('" + question + "','" + answer + "','')";
+            var sql = "INSERT INTO tikuNet (question, answer) VALUES (?, ?)";
             insertOrUpdate(sql);
-            console.log("更新题库答案...");
+            console.info("更新题库答案");
         }
     }
 }

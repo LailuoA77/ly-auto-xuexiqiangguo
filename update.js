@@ -11,7 +11,7 @@ else{
     }
     else{
         log("已是最新版本");
-}
+    }
 }
 //--------------检查更新软件：来源为萘落小站--------------//
 
@@ -23,7 +23,6 @@ importClass(android.database.sqlite.SQLiteDatabase);
  */
 
 function CreateAndInsert(liArray){
-
     var dbName = "tiku.db"; //文件路径
     var path = files.path(dbName);  //确保文件存在
     //创建或打开数据库
