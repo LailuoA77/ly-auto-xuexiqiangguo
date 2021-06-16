@@ -66,8 +66,8 @@ var DuYinTi = "选择正确的读音。";//读音题 20201211
 var ErShiSiShi ="下列不属于二十四史的是。";//二十四史
 var customize_flag = false;//自定义运行标志
 //初始化题库，数据库
-var db = SQLiteDatabase.openOrCreateDatabase(files.path("./tiku.db"),null);
-db.beginTransaction();//数据库开始事务
+var db = SQLiteDatabase.openOrCreateDatabase(files.path("tiku.db"),null);
+// db.beginTransaction();//数据库开始事务s
 var sql = "SELECT * FROM tikuNet;";
 var cursor = db.rawQuery(sql, null);
 if (cursor.moveToFirst()) {
@@ -684,7 +684,6 @@ ui.zsy.click(function () {//四人赛
 ui.stop.click(function () {
     if (thread != null && thread.isAlive()) {
         threads.shutDownAll();
-        engines.stopAll();
         toast("停止运行！")
         console.hide();
     }
@@ -2320,7 +2319,7 @@ function challengeQuestionLoop(conNum) {
          question = question + options[0];//字形题 读音题 在题目后面添加第一选项               
                 }
         console.log((conNum + 1).toString() + ".随机点击题目：" + question);
-        sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
         listArray[i].child(0).click();//随意点击一个答案
         ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
         console.log("随机点击:"+ClickAnswer);
@@ -2342,7 +2341,7 @@ function challengeQuestionLoop(conNum) {
         let listArray = className("ListView").findOnce().children();//题目选项列表
         let i = random(0, listArray.length - 1);
         console.log("随机点击");
-        sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
         listArray[i].child(0).click();//随意点击一个答案
         return;
     }
@@ -2383,7 +2382,7 @@ function challengeQuestionLoop(conNum) {
     {
         let i = random(0, listArray.length - 1);
         console.error("没有找到答案，随机点击");
-        sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
         listArray[i].child(0).click();//随意点击一个答案
         ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
         hasClicked = true;
@@ -2401,7 +2400,7 @@ function challengeQuestionLoop(conNum) {
         listArray.forEach(item => {
             let listDescStr = item.child(0).child(1).text();
             if (listDescStr == answer) {
-                sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+                sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
                 item.child(0).click();//点击答案
                 hasClicked = true;
                 sleep(500);//等待0.5秒，是否出现X
@@ -2424,7 +2423,7 @@ function challengeQuestionLoop(conNum) {
     {//因导致不能成功点击问题较多，故该部分不更新题库，大部分问题是题库题目适配为填空题或多选题或错误选项
         console.error("未能成功点击，随机点击");
         let i = random(0, listArray.length - 1);
-        sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
         listArray[i].child(0).click();//随意点击一个答案
         console.log("随机点击:"+ClickAnswer);
         sleep(500);//等待0.5秒，是否出现X
@@ -2441,26 +2440,13 @@ function challengeQuestionLoop(conNum) {
 }
 
 /**
- * @description: 判断题库是否存在
- * @param: null
- * @return: null
- */
-function judge_tiku_existence() {
-    if (!files.exists(files.path("./tiku.db"))) {
-        //files.createWithDirs(path);
-        console.error("未找到题库！请将题库文件放置与js文件同一目录下再运行！");
-        return false;
-    }
-    else return true;
-}
-
-/**
  * @description: 从数据库中搜索答案
  * @param: question 问题
  * @return: answer 答案
  */
 function getAnswer(question, table_name) {
-    sql = "SELECT answer FROM " + table_name + " WHERE question LIKE '" + question + "%'"
+    let db = SQLiteDatabase.openOrCreateDatabase(files.path("tiku.db"),null);
+    let sql = "SELECT answer FROM " + table_name + " WHERE question LIKE '" + question + "%'"
     var cursor = db.rawQuery(sql, null);
     if (cursor.moveToFirst()) {
         var answer = cursor.getString(0);
@@ -2471,6 +2457,7 @@ function getAnswer(question, table_name) {
         console.error("题库中未找到答案");
         cursor.close();
         return '';
+
     }
 }
 
@@ -2831,20 +2818,20 @@ function dailyQuestionLoop() {
            }
         }else {
             console.info("答案：" + ansTiku);
-            sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+            sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
             clickByAnswer(answer);
         }
    }
-   sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+   sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
     if (text("确定").exists()) {//每日每周答题
         text("确定").click();
-        sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+        sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
     }else if (text("下一题").exists()) {//专项答题
             text("下一题").click();
-            sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+            sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
      }else if (text("完成").exists()) {//专项答题最后一题
             text("完成").click();
-            sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
+            sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
       }else{
         console.warn("未找到右上角按钮，尝试根据坐标点击");
         click(dw * 0.85, dh * 0.06);//右上角确定按钮，根据自己手机实际修改
@@ -3050,12 +3037,10 @@ function checkAndUpdate(question, ansTiku, answer) {
 
 
 function main() {
-    if (!judge_tiku_existence()) {//题库不存在则退出
-        return;
-    }
     auto.waitFor();//等待获取无障碍辅助权限
     start_app();//启动app
-    var start = new Date().getTime();//程序开始时间 
+    var start = new Date().getTime();//程序开始时间
+    console.log("开始工作"); 
     if (customize_flag == true) {
         //自定义学习，各项目执行顺序可换
          localChannel1();//本地频道
@@ -3133,9 +3118,9 @@ function start_app() {
      console.error("找不到学习强国App!");
      return;
       }
+      console.log("延时5秒等待APP加载");
      sleep(5000);//如果已清理强国app后台，默认打开主页;如果未清理后台，3秒应该可以拉起强国app
-     db.beginTransaction();//数据库开始事务
-
+    //  db.beginTransaction();//数据库开始事务
     while (!id("home_bottom_tab_button_work").exists()){//返回到主页出现
         back();
         sleep(1000);
