@@ -16,7 +16,8 @@
  
  5、由于题库的题目收录问题，一些答题项目无法做到全部正确，敬请谅解🙂🙂🙂🙂
  
- 6、更新方法 ![更新主程序](https://github.com/LailuoA77/ly-auto-xuexiqiangguo/blob/main/更新主程序.jpg)  ![](https://github.com/LailuoA77/ly-auto-xuexiqiangguo/blob/main/更新题库.jpg)
+ 6、更新方法 ![更新主程序](https://github.com/LailuoA77/ly-auto-xuexiqiangguo/blob/main/更新主程序.jpg)  
+           ![更新题库](https://github.com/LailuoA77/ly-auto-xuexiqiangguo/blob/main/更新题库.jpg)
  
 
   ##       关于
