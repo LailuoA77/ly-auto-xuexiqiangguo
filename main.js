@@ -11,7 +11,7 @@ var margin = parseInt(dw * 0.02);
 
 //开屏提示 萘落修改
 var readme = files.read("./README.md");
-if (!files.exists(files.path("tiku.db-journal"))) {
+if (!files.exists(files.path("list.db-journal"))) {
         alert("必读说明", readme);
 }
 //启动后自动更新
@@ -35,10 +35,10 @@ var vTime = conf[4];//每个小视频学习60秒
 var rTime = 360;//音视频时长-6分钟
 
 // var dyNum = 2;//订阅 2
-var commentText = ["支持党，支持国家！", "为实现中华民族伟大复兴而不懈奋斗！", "不忘初心，牢记使命"];//评论内容，可自行修改，大于5个字便计分
+var commentText = ["支持党，支持国家！", "为实现中华民族伟大复兴而不懈奋斗！", "不忘初心，牢记使命", "为实现中华民族伟大复兴而不懈奋斗！"];//评论内容，可自行修改，大于5个字便计分
 var num = random(0, commentText.length - 1) ;//随机数    
 
-var aCat = ["推荐","要闻","综合"];
+var aCat = ["推荐","要闻","综合","新思想"];
 var aCatlog = aCat[num] ;//文章学习类别，随机取"推荐""要闻"、"新思想"
 var aZX = conf[2];//文章执行1或2脚本
 var date_string = getTodayDateString();//获取当天日期字符串
@@ -50,8 +50,7 @@ if (num == 0){
              var s = "央视新闻";
              }else {
              var s = "中央广播电视总台";
-             }
- 
+             } 
 var lCount = conf[5];//挑战答题轮数
 var qCount = random(9, 12);//挑战答题每轮答题数(5~7随机)
 var zCount = conf[6];//四人赛轮数
@@ -67,14 +66,14 @@ var ErShiSiShi ="下列不属于二十四史的是。";//二十四史
 var customize_flag = false;//自定义运行标志
 //初始化题库，数据库
 var db = SQLiteDatabase.openOrCreateDatabase(files.path("tiku.db"),null);
-// db.beginTransaction();//数据库开始事务s
-var sql = "SELECT * FROM tikuNet;";
-var cursor = db.rawQuery(sql, null);
-if (cursor.moveToFirst()) {
-        var answer = cursor.getString(0);
-        cursor.close();
-        toastLog("题库初始化完成");
-    }
+// // db.beginTransaction();//数据库开始事务s
+// var sql = "SELECT * FROM tikuNet;";
+// var cursor = db.rawQuery(sql, null);
+// if (cursor.moveToFirst()) {
+//         var answer = cursor.getString(0);
+//         cursor.close();
+//         toastLog("题库初始化完成");
+//     }
 // db.endTransaction();//数据结束事务
 /*
 <---------------UI部分开始--------------->
@@ -154,7 +153,7 @@ ui.layout(
             <frame>
                 <vertical>
                     <horizontal gravity="center">
-                        <input margin={margin + "px"}id="keyword" hint=" 输入题目或答案关键字" h="auto" />
+                        <input margin={margin + "px"}id="keyword" hint="输入关键字" h="auto" />
                         <radiogroup orientation="horizontal" >
                             <radio id="rbQuestion" text="题目" checked="true" />
                             <radio id="rbAnswer" text="答案" />
@@ -167,14 +166,7 @@ ui.layout(
                         <button id="next" text=" 下一条 " />
                         <button id="reset" text=" 重置 " />
                     </horizontal>
-                    <horizontal gravity="center">
-                        <button id="update" text=" 修改答案 " />
-                        <button id="tikudaocu" text=" 导出题库 " />
-                        <button id="tikudaoru" text=" 导入题库 " />
-                        <button id="updateTikuNet" text=" 更新题库 " />
-                    </horizontal>
                     <progressbar id="pbar" indeterminate="true" style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal" />
-                    <text id="resultLabel" text="" gravity="center" />
                     <horizontal>
                         <vertical>
                             <text id="questionLabel" text="题目" />
@@ -189,6 +181,20 @@ ui.layout(
                     <horizontal>
                         <text id="answerLabel" text="答案" />
                         <input id="answer" h="auto" w="*"/>
+                    </horizontal>
+                    <horizontal gravity="center">
+                        <button id="update" text=" 修改答案 " />
+                        <button id="tikudaocu" text=" 导出题库 " />
+                        <button id="tikudaoru" text=" 导入题库 " />
+                        <button id="updateTikuNet" text=" 更新题库 " />
+                    </horizontal>
+                    <horizontal gravity="center">
+                    <text id="biaoti" text="标题" />
+                    <input id="bt" h="auto" hint="暂未实现" w="*"/>
+                    </horizontal>
+                    <horizontal gravity="center">
+                    <text id="riqi" text="日期" />
+                    <input id="rq" h="auto" hint="暂未实现" w="*"/>
                     </horizontal>
                     <horizontal gravity="center">
                         <button id="daochu" text="导出文章列表" />
@@ -217,12 +223,9 @@ activity.setSupportActionBar(ui.toolbar);
 ui.viewpager.setTitles(["自动", "数据配置", "题库"]);
 //让滑动页面和标签栏联动
 ui.tabs.setupWithViewPager(ui.viewpager);
-
+ui.run(() => {ui.pbar.setVisibility(View.INVISIBLE);}); //进度条不可见
 //让工具栏左上角可以打开侧拉菜单
 ui.toolbar.setupWithDrawer(ui.drawer);
-
-//进度条不可见
-ui.run(() => {ui.pbar.setVisibility(View.INVISIBLE);});
 
 ui.menu.setDataSource([
     {
@@ -286,6 +289,7 @@ ui.search.click(() => {
     });
     //查询开始
     threads.start(function () {
+        ui.run(() => {ui.pbar.setVisibility(View.VISIBLE);}); //进度条可见
         if (ui.keyword.getText() != "") {
             var keyw = ui.keyword.getText();
             if (ui.rbQuestion.checked) {//按题目搜
@@ -311,12 +315,14 @@ ui.search.click(() => {
         }else {
             toastLog("请输入关键字");
         }
+        ui.run(() => {ui.pbar.setVisibility(View.INVISIBLE);}); //进度条不可见
     });
 });
 
 //最近十条
 ui.lastTen.click(() => {
     threads.start(function () {
+        ui.run(() => {ui.pbar.setVisibility(View.VISIBLE);}); //进度条可见
         var keyw = ui.keyword.getText();
         qaArray = tikuCommon.searchDb(keyw, "", "SELECT question,answer FROM tikuNet ORDER BY rowid DESC limit 10");
         var qCount = qaArray.length;
@@ -334,6 +340,7 @@ ui.lastTen.click(() => {
                 ui.question.setText("未找到");
             });
         }
+        ui.run(() => {ui.pbar.setVisibility(View.INVISIBLE);}); //进度条不可见
     });
 });
 
@@ -608,7 +615,12 @@ ui.dwz.click(function () {//读文章
     }
     thread = threads.start(function () {
         start_app();
-        articleStudy();
+        if (aZX == 1){
+            articleStudy1();//学习文章脚本1，包含点赞、分享和评论 
+         }
+         else{
+            articleStudy2();//学习文章脚本2，包含点赞、分享和评论 
+         }
          stop_app();
     });
 });
@@ -707,8 +719,6 @@ ui.lCount.setText(lCount.toString());
 ui.qCount.setText(qCount.toString());
 ui.zCount.setText(zCount.toString());
 
-
-
 /*
 <---------------UI部分结束--------------->
 <---------------视频学习部分-------------->
@@ -802,39 +812,33 @@ function stopRadio() {
     }
 }
 
-/*      数据库控制函数开始  来源:lazystudy*/
-/**
- * @description: 读取文章数据库
- * @param: title,date
- * @return: res
+/**   检查文章数据库
+ * @description: 检查是否浏览过文章，没有读过变成已读
+ * @param: title
+ * @return: res (true,false)
  */
-function getLearnedArticle(title, date) {
+ function checkAndArticle(title){
     rtitle = title.replace("'", "''");
-    let dbName = "list.db";
-    //文件路径
-    let path = files.path(dbName);
-    //确保文件存在
-    if (!files.exists(path)) {
-        // files.createWithDirs(path);
-        console.error("未找到题库!请将题库放置与js同一目录下");
-    }
-    //创建或打开数据库
-    let dbt = SQLiteDatabase.openOrCreateDatabase(path, null);
+    var tag = "已读";     
+    let dbt = SQLiteDatabase.openOrCreateDatabase(files.path("list.db"), null);//创建或打开数据库
     let createTable = "\
     CREATE TABLE IF NOt EXISTS learnedArticles(\
     title CHAR(500),\
-    date CHAR(100)\
+    tag CHAR(100)\
     );";
     dbt.execSQL(createTable);
-    let sql = "SELECT * FROM  learnedArticles WHERE title = '" + rtitle + "' AND date = '" + date + "'";
+    let sql = "SELECT * FROM  learnedArticles WHERE title = '" + rtitle + "' AND tag = '" + tag + "'";
     let cursor = dbt.rawQuery(sql, null);
     let res = cursor.moveToFirst();
     cursor.close();
+    if(res == false || res == "false"){
+        sql = "INSERT INTO learnedArticles VALUES ('" + rtitle + "','" + tag + "')";
+        dbt.execSQL(sql);
+    }
     dbt.close();
     log(res);
     return res;
 }
-
 
 /**
  * @description: 获取积分
@@ -875,7 +879,8 @@ function getLearnedArticle(title, date) {
     }
     console.log(myScores);
     aCount = 12 - myScores["我要选读文章"];
-    vCount = 6 - myScores["视听学习"];
+    if(aCount == 0) aCount = 2 - myScores['分享'] - myScores['发表观点'] ;
+    vCount = 6 - myScores["视听学习"] + 6 - myScores["视听学习时长"];
     rTime = (6 - myScores["视听学习时长"]) * 60;
     console.log('剩余文章：' + aCount.toString() + '篇')
     console.log('剩余视频：' + vCount.toString() + '个')
@@ -892,8 +897,6 @@ function getTodayDateString() {
     return s
 }
 
-
-
 function dateToString(y, m, d) {
     var year = y.toString();
     if ((m + 1) < 10) {
@@ -908,28 +911,6 @@ function dateToString(y, m, d) {
     }
     var s = year + "-" + month + "-" + day;//年-月-日
     return s;
-}
-
-/**
- * @description: 获取的文章题目写入数据库
- * @param: title,date
- * @return: res
- */
-function insertLearnedArticle(title, date) {
-    rtitle = title.replace("'", "''");
-    let dbName = "list.db";
-    let path = files.path(dbName);
-    let dbt = SQLiteDatabase.openOrCreateDatabase(path, null);
-    let createTable = "\
-    CREATE TABLE IF NOt EXISTS learnedArticles(\
-    title CHAR(500),\
-    date CHAR(100)\
-    );";
-    // var cleanTable = "DELETE FROM tikuNet";
-    dbt.execSQL(createTable);
-    let sql = "INSERT INTO learnedArticles VALUES ('" + rtitle + "','" + date + "')";
-    dbt.execSQL(sql);
-    dbt.close();
 }
 
 /*        数据库控制函数结束         */
@@ -972,123 +953,6 @@ function article_timing(n, seconds) {
 
 
 /**
- * @description: 文章学习函数  (阅读文章+文章学习时长)---6+6=12分
- * @param: null
- * @return: null
- */
-function articleStudy(x) {
-    while (!desc("工作").exists());//等待加载出主页
-    var listView = className("ListView");//获取文章ListView控件用于翻页
-    if (x == 0) {
-        desc("工作").click();//点击主页正下方的"学习"按钮
-        sleep(2000);
-        click(aCatlog);
-    }
-    sleep(2000);
-    var zt_flag = false;//判断进入专题界面标志
-    var fail = 0;//点击失败次数
-    var date_string = getTodayDateString();//获取当天日期字符串
-    for (var i = 0, t = 0;i < aCount;) {
-        try {
-            if ((id("general_card_title_id").findOnce(t).parent().parent().click() || id("general_card_title_id").findOnce(t).parent().parent().parent().click()) == true) {
-                sleep(5000);
-                // // sleep(10000);//等待加载出文章页面，后面判断是否进入了视频文章播放要用到
-                //获取当前正在阅读的文章标题
-                let n = 0;
-                while (!textContains("欢迎发表你的观点").exists()) {//如果没有找到评论框则认为没有进入文章界面，一直等待
-                    sleep(2000);
-                    console.warn("正在等待加载文章界面...");
-                    if (n > 3) {//等待超过3秒则认为进入了专题界面，退出进下一篇文章
-                        console.warn("没找到评论框!该界面非文章界面!");
-                        zt_flag = true;
-                        break;
-                    }
-                    n++;
-                }
-                if (text("展开").exists()) {//如果存在“展开”则认为进入了文章栏中的视频界面需退出
-                    console.warn("进入了视频界面，退出并进入下一篇文章!");
-                    t++;
-                    back();
-                    if (rTime != 0) {
-                        while (!desc("工作").exists());
-                        console.info("因为广播被打断，重新收听广播...");
-                        sleep(500);
-                        listenToRadio();//听电台广播
-                        while (!desc("工作").exists());
-                        desc("工作").click();
-                    }
-                    sleep(2000);
-                    continue;
-                }
-                if (zt_flag == true) {//进入专题页标志
-                    console.warn("进入了专题界面，即将退出并进下一篇文章!");
-                    t++;
-                    back();
-                    sleep(2000);
-                    zt_flag = false;
-                    continue;
-                }
-                var currentNewsTitle = ""
-                if (id("xxqg-article-header").exists()) {
-                    currentNewsTitle = id("xxqg-article-header").findOne().child(0).text();// 最终解决办法
-                }else if (textContains("来源").exists()) {
-                    currentNewsTitle = textContains("来源").findOne().parent().children()[0].text();
-                }else if (textContains("作者").exists()) {
-                    currentNewsTitle = textContains("作者").findOne().parent().children()[0].text();
-                }else if (descContains("来源").exists()) {
-                    currentNewsTitle = descContains("来源").findOne().parent().children()[0].desc();
-                }else if (descContains("作者").exists()) {
-                    currentNewsTitle = descContains("作者").findOne().parent().children()[0].desc();
-                }else {
-                    console.log("无法定位文章标题,即将退出并阅读下一篇")
-                    t++;
-                    back();
-                    sleep(2000);
-                    continue;
-                }
-                if (currentNewsTitle == "") {
-                    console.log("标题为空,即将退出并阅读下一篇")
-                    t++;
-                    back();
-                    sleep(2000);
-                    continue;
-                }
-                var flag = getLearnedArticle(currentNewsTitle, date_string);
-                if (flag) {
-                    //已经存在，表明阅读过了
-                    console.info("该文章已经阅读过，即将退出并阅读下一篇");
-                    t++;
-                    back();
-                    sleep(2000);
-                    continue;
-                }else {
-                    //没阅读过，添加到数据库
-                    insertLearnedArticle(currentNewsTitle, date_string);
-                }
-                console.log("正在学习第" + (i + 1) + "篇文章,标题：", currentNewsTitle);
-                fail = 0;//失败次数清0
-                //开始循环进行文章学习
-                log(i+"next"+aTime);
-                article_timing(i, aTime);
-                sleep(2000);
-                back();//返回主界面
-                while (!desc("工作").exists());//等待加载出主页
-                sleep(2000);
-                i++;
-                t++;//t为实际点击的文章控件在当前布局中的标号,和i不同,勿改动!
-            }else {
-                t++;
-            }
-        }catch (e) {
-            listView.scrollForward();
-            t = 0;
-            sleep(1500);
-        }
-    }
-
-}
-
-/**
  * @description: 听“电台”新闻广播函数  (视听学习+视听学习时长)---6+6=12分
  * @param: null
  * @return: null
@@ -1114,7 +978,6 @@ function listenToRadio() {
     }
     sleep(2000);
 }
-
 
 /**
  * @description: 文章学习函数  (阅读文章+文章学习时长)---12分
@@ -1274,32 +1137,36 @@ function articleStudy1() {
         }
     }
 }
-//文章学习函数之2 基于播报判断.因基于父子控件判断，点击基于日期s=date_String 感谢chongyadong
+
+//基于第一个，加入阅读记忆
 function articleStudy2() {
- while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
- id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
-sleep(2000);
- var aCatlog = aCat[num] ;//文章学习类别，随机取"推荐""要闻"、"新思想"
- var date_string = getTodayDateString();//获取当天日期字符串
- var s = date_string;
- var listView = className("ListView");//获取文章ListView控件用于翻页
-click(aCatlog);
-sleep(2000);
-var zt_flag = false;//判断进入专题界面标志
-var currentNewsTitle = "";
-var fail = 0;//点击失败次数
-console.log('文章类别：' + aCatlog + '关键词：'+ s)
-for (var i = 0, t = 0;i < aCount;) {
-    var art_obj = text(s).findOnce(t);
-    //console.info(art_obj);
-    if ((art_obj != null) && (art_obj.parent().childCount() == 4)) {
-        t++;//t为实际查找的文章控件在当前布局中的标号,和i不同,勿改动!
-        if ((art_obj.parent().child(3).text() == "播报") && (art_obj.parent().child(0).text() != currentNewsTitle)) //如果播报存在就进入文章正文
+    while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
+    id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
+    sleep(2000);
+    var aCatlog = aCat[num] ;//文章学习类别，随机取"推荐""要闻"、"新思想"
+    var date_string = getTodayDateString();//获取当天日期字符串
+    var s = date_string;
+    var listView = className("ListView");//获取文章ListView控件用于翻页
+    click(aCatlog);
+    sleep(2000);
+    var zt_flag = false;//判断进入专题界面标志
+    var fail = 0;//点击失败次数
+    console.log('文章类别：' + aCatlog)
+    for (var i = 0, t = 0;i < aCount;) {
+        // lynuo
+        let click_tag = false;
+        let obj = id("general_card_title_id").findOnce(t);
+        sleep(200);
+        console.error(obj);
+        if(obj != null){
+        let tit = obj.text();
+        console.info(tit);
+        let dd = checkAndArticle(tit);
+        if(!dd) click_tag = click(tit);
+        };
+        // lynuo
+        if (click_tag == true)//如果点击成功则进入文章页面,不成功意味着本页已经到底,要翻页
         {
-            currentNewsTitle = art_obj.parent().child(0).text();
-            log(currentNewsTitle);
-            art_obj.parent().click();
-            sleep(1000);
             let n = 0;
             while (!textContains("欢迎发表你的观点").exists())//如果没有找到评论框则认为没有进入文章界面，一直等待
             {
@@ -1318,7 +1185,7 @@ for (var i = 0, t = 0;i < aCount;) {
                 console.warn("进入视频界面，退出并进下一篇文章!");
                 t++;
                 back();
-                /*while (!id("home_bottom_tab_button_work").exists());
+                /* while (!id("home_bottom_tab_button_work").exists());
                 sleep(500);
                 click("电台");
                 sleep(1000);
@@ -1331,8 +1198,7 @@ for (var i = 0, t = 0;i < aCount;) {
                 sleep(1000);
                 num = random(0, commentText.length - 1) ;//重取随机数
                 aCatlog = aCat[num] ;
-               s = date_string;
-              /*s = "“学习强国”学习平台";*/
+                s = "“学习强国”学习平台";
                 console.log('文章类别：' + aCatlog + '关键词：'+ s)
                 click(aCatlog);
                 sleep(1000);
@@ -1352,8 +1218,7 @@ for (var i = 0, t = 0;i < aCount;) {
             sleep(1000);
             num = random(0, commentText.length - 1) ;//重取随机数
             aCatlog = aCat[num] ;
-             s = date_string;
-            /*s = "“学习强国”学习平台";*/
+            s = "“学习强国”学习平台";
             console.log('文章类别：' + aCatlog + '关键词：'+ s)
             click(aCatlog);
             sleep(1000);
@@ -1373,45 +1238,70 @@ for (var i = 0, t = 0;i < aCount;) {
             fail = 0;//失败次数清0
             article_timing(i, aTime);
             if (i < cCount)//收藏分享2篇文章
-             {
-               CollectAndShare(i);//收藏+分享 若c运行到此报错请注释本行！
-               Comment(i);//评论
-              }
+            {
+                CollectAndShare(i);//收藏+分享 若运行到此报错请注释本行！
+                Comment(i);//评论
+            }
             back();//返回主界面
             while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
             sleep(1000);
             i++;
-         }else{//判断非目标文章
-            if (t > 2) {
-                listView.scrollForward();//向下滑动(翻页
-                console.log("----------翻页------------");
-                t = 0;
-                sleep(1500);
-              }
+            t++;//t为实际点击的文章控件在当前布局中的标号,和i不同,勿改动!
+       }else {
+            if (id("v_play").exists() || id("bg_play").exists())//进入电台页面2020.09.28
+           {
+             console.warn("进入电台界面，退出并进下一篇文章!");
+             t++;
+             if (id("btn_back").exists()){
+             id("btn_back").findOnce().click();//返回 2020.09.28需关闭电台收听
+             }else{
+                 back;}
+             while (!id("home_bottom_tab_button_work").exists());
+             id("home_bottom_tab_button_work").findOne().click();
+             sleep(1000);
+             num = random(0, commentText.length - 1) ;//重取随机数
+             aCatlog = aCat[num] ;
+             s = "“学习强国”学习平台";
+             console.log('文章类别：' + aCatlog + '关键词：'+ s)
+             click(aCatlog);
+             sleep(1000);
+             continue;
+           }
+           
+           if (i == 0)//如果第一次点击就没点击成功则认为首页无当天文章
+            {
+                date_string = getYestardayDateString();
+                s = date_string;
+                /*s = "“学习强国”学习平台";*/
+                num = random(0, commentText.length - 1) ;//重取随机数
+                aCatlog = aCat[num] ;
+                click(aCatlog);
+                console.warn("首页没有找到当天文章，即将学习昨日新闻!"+aCatlog + s);
+                continue;
+            }
+            
+            if (fail > 3)//连续翻几页没有点击成功则认为今天的新闻还没出来，学习昨天的
+            {
+                date_string = getYestardayDateString();
+                 /*s = date_string;*/
+                 s = "“学习强国”学习平台";
+                num = random(0, commentText.length - 1) ;//重取随机数
+                aCatlog = aCat[num] ;
+                click(aCatlog);
+                console.warn("没有找到当天文章，即将学习昨日新闻!"+aCatlog + s);
+                fail = 0;//失败次数清0
+                continue;
+            }
+            
+            if (!textContains(s).exists())//当前页面当天新闻
+            {
+                fail++;//失败次数加一
+            }
+            listView.scrollForward();//向下滑动(翻页)
+            t = 0;
+            sleep(1500);
         }
-     }else{
-        if (fail > 3) //连续翻几页没有点击成功则认为今天的新闻还没出来，学习昨天的
-          {
-            date_string = getYestardayDateString();
-            s = date_string;
-            /*s = "“学习强国”学习平台";*/
-            num = random(0, commentText.length - 1) ;//重取随机数
-            aCatlog = aCat[num] ;
-            click(aCatlog);
-            console.warn("没有找到当天文章，即将学习昨日新闻!"+aCatlog + s);
-            fail = 0;//失败次数清0
-            continue;
-          }
-        if (!textContains(date_string).exists()) //当前页面当天新闻
-          {
-            fail++;//失败次数加一
-          }
-        listView.scrollForward();//向下滑动(翻页
-        console.log("----------翻页------------");
-        t = 0;
-        sleep(1500);
-     }
-   }
+    }
 }
 
 /**
@@ -1645,7 +1535,7 @@ function CollectAndShare(i) {
 }
 
 /**
- * @description: 评论函数---2分
+ * @description: 评论函数---2次
  * @param: i-文章标号
  * @return: null
  */
@@ -2526,18 +2416,10 @@ function weeklyQuestion() {
     sleep(1000);
     text("我要答题").findOne().parent().click();
       }
-    /*while (!textContains("我要答题").exists());
-    sleep(1000);
-    click("我要答题");*/
     while (!text("每周答题").exists());
     sleep(1000);
     text("每周答题").click();
     console.log("开始每周答题")
-    //sleep(2000);
-    //text("未作答").click();
-
-    //翻页点击每周作答
-    //let sublist = className("ListView").findOnce(0);//控件错误，用swipe划，7.0以下可能错误
     let i = 0;//参考订阅的翻页，只进行一次点击
     while (i < 1) {
         if (text("未作答").exists()) {
@@ -2552,7 +2434,7 @@ function weeklyQuestion() {
         }else {
             sleep(1000);
             swipe(dw/3*2, dh/6*5, dw/3*2, dh/6, 500);//往下翻（纵坐标从5/6处滑到1/6处）
-            //console.log("滑动查找未作答的每周答题")
+            console.log("滑动查找未作答的每周答题")
         }
     }
     ////翻页点击每周作答
@@ -2744,47 +2626,46 @@ function specialQuestion() {
  * @return: null
  */
 function dailyQuestionLoop() {
-    var dw = device.width;
-    var dh = device.height;
-    var blankArray = [];
-    var question = "";
-    var answer = "";
+    let blankArray = [];
+    let question = "";
+    let answer = "";
+    //填空题部分
     if (textStartsWith("填空题").exists()) {
-        var questionArray = getFitbQuestion();
+        let questionArray = getFitbQuestion();
         questionArray.forEach(item => {
-        if (item != null && item.charAt(0) == "|") {//是空格数
-            blankArray.push(item.substring(1));
-        }else {//是题目段
-            question += item;
-        }
-    });
-     question = question.replace(/\s/g, "");
-     console.log("题目：" + question);
-     var ansTiku = getAnswer(question, 'tikuNet');
-     answer = ansTiku.replace(/(^\s*)|(\s*$)/g, "");
-   if (answer == "") {//答案空，前面题库未找到答案,找提示
-            var tipsStr = getTipsStr();
+            if (item != null && item.charAt(0) == "|") {//是空格数
+                blankArray.push(item.substring(1));
+            }else question += item;//是题目段
+        });
+        question = question.replace(/\s/g, "");
+        console.log("题目：" + question);
+        let ansTiku = getAnswer(question, 'tikuNet');
+        answer = ansTiku.replace(/(^\s*)|(\s*$)/g, "");
+        if (answer == "") {//答案空，前面题库未找到答案,找提示
+            let tipsStr = getTipsStr();
             answer = getAnswerFromTips(questionArray, tipsStr);
             console.info("提示答案：" + answer);
             setText(0, answer.substr(0, blankArray[0]));
             if (blankArray.length > 1) {
-                for (var i = 1;i < blankArray.length;i++) {
+                for (let i = 1;i < blankArray.length;i++) {
                     setText(i, answer.substr(blankArray[i - 1], blankArray[i]));
                 }
-              }
-           checkAndUpdate(question, ansTiku, answer);
-       }else {//答案非空，题库中已找到答案
-            console.info("答案：" + answer);
-            setText(0, answer.substr(0, blankArray[0]));
-            if (blankArray.length > 1) {
-                for (var i = 1;i < blankArray.length;i++) {
-                    setText(i, answer.substr(blankArray[i - 1], blankArray[i]));
+            }
+            }
+            else {//答案非空，题库中已找到答案
+                console.info("答案：" + answer);
+                setText(0, answer.substr(0, blankArray[0]));
+                if (blankArray.length > 1) {
+                    for (let i = 1;i < blankArray.length;i++) {
+                        setText(i, answer.substr(blankArray[i - 1], blankArray[i]));
+                    }
                 }
-        }
-    }
+            }
    }
+   
+   //选择题部分
     else if (textStartsWith("多选题").exists() || textStartsWith("单选题").exists()) {
-        var questionArray = getChoiceQuestion();
+        let questionArray = getChoiceQuestion();
         questionArray.forEach(item => {
         if (item != null && item.charAt(0) == "|") {//是空格数
             blankArray.push(item.substring(1));
@@ -2792,10 +2673,10 @@ function dailyQuestionLoop() {
             question += item;
         }
     });
-     var options = [];//选项列表
+    let options = [];//选项列表
      if (className("ListView").exists()) {//选择题提取答案，为字形题 注音题准备
         className("ListView").findOne().children().forEach(child => {
-            var answer_q = child.child(0).child(2).text();//此处child(2)为去除选项A.的选项内容，与争上游不同
+            let answer_q = child.child(0).child(2).text();//此处child(2)为去除选项A.的选项内容，与争上游不同
             options.push(answer_q);
         });
        }else {
@@ -2814,29 +2695,35 @@ function dailyQuestionLoop() {
             answer = clickByTips(tipsStr);
             console.info("提示中的答案：" + answer);
             if (text("单选题").exists()){//仅单选题更新题库，多选题不更新进题库
-             checkAndUpdate(question, ansTiku, answer);
            }
         }else {
             console.info("答案：" + ansTiku);
-            sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
+            sleep(random(0.5, 1)*500);//随机延时0.25-0.5秒
             clickByAnswer(answer);
         }
    }
    sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
-    if (text("确定").exists()) {//每日每周答题
-        text("确定").click();
-        sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
-    }else if (text("下一题").exists()) {//专项答题
-            text("下一题").click();
+   //下一道题
+   while(text("确定").exists()||text("下一题").exists()||text("完成").exists())
+    {
+        if(textContains("正确答案：").exists()){ //错题更新答案，下次就正确了
+            let obj = textContains("正确答案：").findOne();
+            let tipanswer = obj.text();
+            let answer = tipanswer.slice(tipanswer.lastIndexOf(" ")+1,tipanswer.length);
+            checkAndUpdate(question, ansTiku, answer);            
+        }        
+        if (text("确定").exists()) {//每日每周答题
+            text("确定").click();
             sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
-     }else if (text("完成").exists()) {//专项答题最后一题
-            text("完成").click();
-            sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
-      }else{
-        console.warn("未找到右上角按钮，尝试根据坐标点击");
-        click(dw * 0.85, dh * 0.06);//右上角确定按钮，根据自己手机实际修改
-        console.warn("请手动处理");
-        sleep(5000);
+        }
+        if (text("下一题").exists()) {//专项答题
+                text("下一题").click();
+                sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
+        }
+        if (text("完成").exists()) {//专项答题最后一题
+                text("完成").click();
+                sleep(random(0.5, 1)*1000);//随机延时0.25-0.5秒
+        }
     }
    console.log("---------------------------");
     sleep(2000);
@@ -2930,12 +2817,13 @@ function getTipsStr() {
  * @return: ansTips
  */
 function getAnswerFromTips(questionArray, tipsStr) {
-    var ansTips = "";
-    for (var i = 1;i < questionArray.length -1;i++) {
+    let ansTips = "";
+    if(tipsStr == "请观看视频") return "--------";
+    for (let i = 1;i < questionArray.length -1;i++) {
         if (questionArray[i].charAt(0) == "|") {
-            var blankLen = questionArray[i].substring(1);
-            var indexKey = tipsStr.indexOf(questionArray[i + 1]);
-            var ansFind = tipsStr.substr(indexKey - blankLen, blankLen);
+            let blankLen = questionArray[i].substring(1);
+            let indexKey = tipsStr.indexOf(questionArray[i + 1]);
+            let ansFind = tipsStr.substr(indexKey - blankLen, blankLen);
             /*ansTips += ansFind;*/
             ansTips = ansTips.concat(ansFind);
         }
@@ -3043,18 +2931,19 @@ function main() {
     console.log("开始工作"); 
     if (customize_flag == true) {
         //自定义学习，各项目执行顺序可换
-         localChannel1();//本地频道
-         zsyQuestion();//四人赛
-         SRQuestion();//双人对战
+        localChannel1();//本地频道
         dailyQuestion();//每日答题
         if (zxzd == 1){
             weeklyQuestion();//每周答题
             specialQuestion();//专项答题
         }
-            challengeQuestion();//挑战答题
+        challengeQuestion();//挑战答题
+        zsyQuestion();//四人赛
+        SRQuestion();//双人对战
         if (aZX == 1){
            articleStudy1();//学习文章脚本1，包含点赞、分享和评论 
-        }else{
+        }
+        else{
            articleStudy2();//学习文章脚本2，包含点赞、分享和评论 
         }
            videoStudy_bailing();//看视频              
@@ -3062,22 +2951,18 @@ function main() {
     else 
     {
         getScores();//获取积分
-        if (zxzd == 1)
+
+        while (myScores['挑战答题'] != 6 || myScores['每日答题'] != 5 || myScores['视听学习'] != 6 || myScores['我要选读文章'] != 12)
         {
-            if (myScores['每周答题'] < 1) {
-            weeklyQuestion();//每周答题
+            if (myScores['本地频道'] != 1) localChannel1();//本地频道                    
+            if (myScores['每日答题'] != 5) dailyQuestion();//每日答题
+            if (zxzd == 1){
+                if (myScores['每周答题'] < 1) weeklyQuestion();//每周答题
+                if (myScores['专项答题'] < 1) specialQuestion();//专项答题
             }
-            if (myScores['专项答题'] < 1) {
-            specialQuestion();//专项答题
-            }
-        }
-        while ( myScores["双人对战"] < 1 || myScores["四人赛"] < 2 || myScores['本地频道'] != 1 || myScores['挑战答题'] != 6 || myScores['每日答题'] != 5 || myScores['视听学习'] != 6 || myScores['我要选读文章'] != 12)
-        {
-            if (myScores['本地频道'] != 1) localChannel1();//本地频道        
+            if (myScores['挑战答题'] != 6) challengeQuestion();//挑战答题
             if (myScores["四人赛"] < 2) zsyQuestion();//四人赛        
-            if (myScores["双人对战"] < 1) SRQuestion();//双人对战         
-            if (myScores['挑战答题'] != 6) challengeQuestion();//挑战答题        
-            if (myScores['每日答题'] != 5) dailyQuestion();//每日答题        
+            if (myScores["双人对战"] < 1) SRQuestion();//双人对战
             if (myScores['我要选读文章'] != 12) 
             if (aZX == 1){
                 articleStudy1();//学习文章脚本1，包含点赞、分享和评论 
@@ -3085,15 +2970,13 @@ function main() {
             else{
                 articleStudy2();//学习文章脚本2，包含点赞、分享和评论 
             }
-        if (myScores['视听学习'] != 6) videoStudy_bailing();//看小视频
+            if (myScores['视听学习'] != 6) videoStudy_bailing();//看小视频
+
             getScores();//再次获取积分，核对文章和视听时长，补学
             continue;//break结束当前循环，continue继续执行当前循环
         }
-        if (myScores['分享'] != 1 || myScores['发表观点'] != 1){
-        aCount = 2;//置文章数2，学习文章2，启动分享收藏评论2
-        articleStudy1();//收藏+分享 若c运行到此报错请注释本行！
-        }
         if (myScores['视听学习时长'] != 6){
+            videoStudy_bailing();//看小视频
             listenToRadio();//听电台广播补视听时长
         }
     }
@@ -3118,10 +3001,11 @@ function start_app() {
      console.error("找不到学习强国App!");
      return;
       }
-      console.log("延时5秒等待APP加载");
+
+     console.log("延时5秒等待APP加载");
      sleep(5000);//如果已清理强国app后台，默认打开主页;如果未清理后台，3秒应该可以拉起强国app
-    //  db.beginTransaction();//数据库开始事务
-    while (!id("home_bottom_tab_button_work").exists()){//返回到主页出现
+          //com.microvirt.launcher.Launcher;
+     while (!id("home_bottom_tab_button_work").exists()){//返回到主页出现
         back();
         sleep(1000);
     };
