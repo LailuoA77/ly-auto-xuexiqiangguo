@@ -83,7 +83,7 @@ ui.layout(
     <drawer id="drawer">
     <vertical>
         <appbar>
-            <toolbar id="toolbar" title="自动学习强国"/>
+            <toolbar id="toolbar" title="影自强国"/>
             <tabs id="tabs"/>
         </appbar>
         <viewpager id="viewpager">
@@ -785,33 +785,6 @@ function radio_timing(r_time, seconds) {
     }
 }
 
-/**
-@description: 停止广播
-@param: null
-@return: null
-*/
-function stopRadio() {
-    console.log("停止收听广播！");
-    click("电台");
-    sleep(1000);
-    click("听广播");
-    sleep(2000);
-    while (!(textContains("正在收听").exists() || textContains("最近收听").exists() || textContains("推荐收听").exists())) {
-        log("等待加载");
-        sleep(2000)
-    }
-    if (click("正在收听") == 0) {
-        click("最近收听");
-    }
-    sleep(3000);
-    id("v_play").findOnce(0).click();
-    sleep(2000)
-    if (id("btn_back").findOne().click() == 0) {
-        sleep(2000);
-        back();
-    }
-}
-
 /**   检查文章数据库
  * @description: 检查是否浏览过文章，没有读过变成已读
  * @param: title
@@ -1300,78 +1273,6 @@ function articleStudy2() {
             listView.scrollForward();//向下滑动(翻页)
             t = 0;
             sleep(1500);
-        }
-    }
-}
-
-/**
- * @description:新闻联播小视频学习函数
- * @param: null
- * @return: null
- */
-
-function videoStudy_news() {
-    while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
-    id("home_bottom_tab_button_work").findOne().click();//点击主页正下方的"学习"按钮
-    sleep(2000);
-    click("电视台");
-    var vCatlog = vCat[num] ;//视频学习类别，随机取 "第一频道"、"学习视频"、"联播频道"
-    if (num == 0){
-             var s = "中央广播电视总台";
-             }else if (num == 1){
-             var s = "央视新闻";
-             }else {
-             var s = "中央广播电视总台";
-             }
-    sleep(1000);
-    click(vCatlog);
-    sleep(2000);
-    var listView = className("ListView");//获取listView视频列表控件用于翻页
-    var fail = 0;//点击失败次数
-    sleep(1000);
-    console.log('视频类别：' + vCatlog + '关键词：'+ s )
-    for (var i = 0, t = 1;i < vCount;) {
-        if (click(s, t) == true) {
-            console.log("即将学习第" + (i + 1) + "个视频!");
-            fail = 0;//失败次数清0
-            video_timing_news(i, vTime);//学习每个新闻联播小片段
-            back();//返回联播频道界面
-            while (!id("home_bottom_tab_button_work").exists());//等待加载出主页
-            sleep(1000);
-            i++;
-            t++;
-            if (i == 3) {//如果是平板等设备，请尝试修改i为合适值！
-                listView.scrollForward();//翻页
-                sleep(2000);
-                t = 2;
-            }
-        }
-        else {
-        if (fail > 3)//连续翻几页没有点击成功则改换频道
-            {
-                num = random(0, commentText.length - 1) ;//重取随机数
-                vCatlog = vCat[num] ;
-                click(vCatlog);
-                sleep(2000);
-                if (num == 0){
-                   var s = "央视网";
-                 }else if (num == 1){
-                   var s = "新华社";
-                 }else {
-                   var s = "中央广播电视总台";
-                 }
-                 sleep(1000);
-                console.warn("改换："+ vCatlog + '关键词：'+ s);
-                fail = 0;//失败次数清0
-                continue;
-            }
-            if (!textContains(s).exists())//未找到关键词
-            {
-                fail++;//失败次数加一
-            }
-            listView.scrollForward();//翻页
-            sleep(2000);
-            t = 3;
         }
     }
 }
@@ -1868,11 +1769,9 @@ function zsyQuestionLoop() {
   }else {
     while(!className("RadioButton").exists());//@KB64ba建议使用while判断
     if (className("RadioButton").exists() || aquestion.length == 0) {
-        /*sleep(300);*/
         var aquestion = className("ListView").findOnce().parent().child(0).text();
         var question = aquestion.substring(3);//争上游和对战题目前带1.2.3.需去除
         while (aquestion == oldaquestion || question == "") {
-         /*sleep(800);*/
          if (!className("RadioButton").exists() || className("android.view.View").text("继续挑战").exists() || textContains("继续挑战").exists()) {	
          console.info("答题结束!");
          return;
@@ -1881,7 +1780,8 @@ function zsyQuestionLoop() {
          question = aquestion.substring(3);
          }
         }
-      }else {
+      }
+    else {
         console.error("提取题目失败!");
         let listArray = className("ListView").findOnce().children();//题目选项列表
         let i = random(0, listArray.length - 1);
@@ -1890,8 +1790,8 @@ function zsyQuestionLoop() {
         ClickAnswer = listArray[i].child(0).child(1).text();//记录已点击答案
         console.log("随机点击:"+ClickAnswer);
         return;
-      }
-      var chutiIndex = question.lastIndexOf("出题单位");//@chongyadong添加
+    }
+    var chutiIndex = question.lastIndexOf("出题单位");//@chongyadong添加
     if (chutiIndex != -1) {
         question = question.substring(0, chutiIndex - 2);
       }
@@ -1929,6 +1829,7 @@ function zsyQuestionLoop() {
         ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
         console.log("随机点击:"+ClickAnswer);
         console.log("---------------------------");
+        // checkAndUpdate(question,"",ClickAnswer);//更新答案
        }else{//如果找到了答案 该部分问题: 选项带A.B.C.D.，题库返回答案不带，char返回答案带
         var answer_a = answer.substring(0,2);//定义answer_a，获取答案前两个字符对比A.B.C.D.应该不会出现E选项
         if(answer_a == "A." || answer_a == "B." || answer_a == "C." || answer_a =="D."){
@@ -1974,131 +1875,6 @@ function zsyQuestionLoop() {
      return;
     }
   }
-}
-
-//循环2 基于上下题干进行判断题目是否已刷新 感谢ivan-cn
-function zsyQuestionLoop1() {
-    //sleep(1000);
-    let ClickAnswer;
-    if (!className("RadioButton").exists() || className("android.view.View").text("继续挑战").exists() || textContains("继续挑战").exists() /*|| !textContains("距离答题结束").exists()*/){//不存在本局结束标志 继续挑战，则执行  
-    /* console.info("答题结束!");*/
-      return;
-    }else {
-        while (!className("RadioButton").exists());//@KB64ba建议使用while判断
-        if (className("RadioButton").exists() || aquestion.length == 0) {
-            var aquestion = className("ListView").findOnce().parent().child(0).text();
-            var question = aquestion.substring(3);//争上游和对战题目前带1.2.3.需去除
-            //找题目，防出错      
-            while (aquestion == oldaquestion || question == "") {
-                sleep(800);
-                if (!className("RadioButton").exists() || className("android.view.View").text("继续挑战").exists() || textContains("继续挑战").exists()) {	
-                    console.info("答题结束!");
-                    return;
-                }
-                //找题目 
-                aquestion = className("ListView").findOnce().parent().child(0).text();
-                question = aquestion.substring(3);
-            }
-            //           
-        }else {
-            console.error("提取题目失败!");
-            let listArray = className("ListView").findOnce().children();//题目选项列表
-            let i = random(0, listArray.length - 1);
-            console.log("随机点击");
-            listArray[i].child(0).click();//随意点击一个答案
-            return;
-        }
-        var chutiIndex = question.lastIndexOf("出题单位");//@chongyadong添加
-        if (chutiIndex != -1) {
-            question = question.substring(0, chutiIndex - 2);
-        }
-        question = question.replace(/\s/g, "");
-        var options = [];//选项列表
-        if (className("RadioButton").exists()) {
-            className("ListView").findOne().children().forEach(child => {
-                var answer_q = child.child(0).child(1).text();
-                options.push(answer_q);
-            });
-        }else {
-            console.error("答案获取失败!");
-            return;
-        }
-        //
-        if (aquestion != oldaquestion) {
-            reg = /.*择词语的正确.*/g // 正则判断是否为字形
-            if (reg.test(question)) {
-                //log(options)
-                var optionStr = options;
-                for (i in optionStr) {//替换搜索用的数组
-                    optionStr[i] = options[i].substring(3);
-                }
-                var optionStr = options.join("");
-                question = question + optionStr;//Ivan-cn原版代码，会造成搜题失败，不掐头去尾正确率更高 后续：该部分应当配合题库使用
-                /*question = question.substr(1);//开头删除一个字
-                question = question.substr(0, question.length - 1);//结尾删除一个字，增加搜索的准确率
-            }else {
-                question = question.substr(1);//开头删除一个字
-                question = question.substr(0, question.length - 1);*/ //结尾删除一个字，增加搜索的准确率
-            }
-            console.log(aquestion.substring(0, 2) + "题目:" + question);
-             if (question == ZiXingTi.replace(/\s/g, "") || question == DuYinTi.replace(/\s/g, "")|| question == ErShiSiShi.replace(/\s/g, "")) {
-                question = question + options[0].substring(3);//字形题 读音题 在题目后面添加第一选项，选项带A.去除               
-                }
-            var answer = getAnswer(question, 'tikuNet');
-              console.info("答案：" + answer);
-            if (/^[a-zA-Z]{1}$/.test(answer)) {//如果为ABCD形式
-                var indexAnsTiku = indexFromChar(answer.toUpperCase());
-                answer = options[indexAnsTiku];
-                toastLog("answer from char=" + answer);
-            }
-            let hasClicked = false;
-            let listArray = className("ListView").findOnce().children();//题目选项列表
-            /* if (answer == "")*/ //如果没找到答案
-            if (answer.length == 0) {
-                let i = random(0, listArray.length - 1);
-                console.error("没有找到答案，随机点击");
-                listArray[i].child(0).click();//随意点击一个答案
-                hasClicked = true;
-                ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
-                console.log("随机点击:"+ClickAnswer);
-                console.log("---------------------------");
-            }
-            else//如果找到了答案
-            {//该部分问题: 选项带A.B.C.D.，题库返回答案不带，char返回答案带
-                var answer_a = answer.substring(0, 2);//定义answer_a，获取答案前两个字符对比A.B.C.D.应该不会出现E选项
-                if (answer_a == "A." || answer_a == "B." || answer_a == "C." || answer_a == "D.") {
-                    listArray.forEach(item => {
-                        var listDescStrb = item.child(0).child(1).text();
-                        if (listDescStrb == answer) {
-                            item.child(0).click();//点击答案
-                            hasClicked = true;
-                            console.log("---------------------------");
-                        }
-                    });
-                }else {
-                    listArray.forEach(item => {
-                        var listDescStra = item.child(0).child(1).text();
-                        var listDescStrb = listDescStra.substring(3);//选项去除A.B.C.D.再与answer对比
-                        if (listDescStrb == answer) {
-                            item.child(0).click();//点击答案
-                            hasClicked = true;
-                            console.log("---------------------------");
-                        }
-                    });
-                }
-            }
-            if (!hasClicked)//如果没有点击成功
-            {
-                console.error("未能成功点击，随机点击");
-                let i = random(0, listArray.length - 1);
-                listArray[i].child(0).click();//随意点击一个答案
-                console.log("---------------------------");
-            }
-        }
-        //旧题目
-        oldaquestion = aquestion;
-        sleep(1000);
-    }
 }
 
 /**
@@ -2180,155 +1956,158 @@ function challengeQuestion() {
         }
     }
 }
-
 /**
  * @description: 挑战答题循环
  * @param: conNum 连续答对的次数
  * @return: null
  */
-function challengeQuestionLoop(conNum) {
+ function challengeQuestionLoop(conNum) {
     let ClickAnswer;//定义已点击答案
-    if (conNum >= qCount)//答题次数足够退出，每轮qCount=5+随机1-3次
-    {
-        let listArray = className("ListView").findOnce().children();//题目选项列表
-        let i = random(0, listArray.length - 1);
-        console.log("本轮答题数足够，随机点击答案");
-        var question = className("ListView").findOnce().parent().child(0).text();
+    try {        
+        if (conNum >= qCount)//答题次数足够退出，每轮qCount=5+随机1-3次
+        {
+            let listArray = className("ListView").findOnce().children();//题目选项列表
+            let i = random(0, listArray.length - 1);
+            console.log("本轮答题数足够，随机点击答案");
+            var question = className("ListView").findOnce().parent().child(0).text();
+            question = question.replace(/\s/g, "");
+            var options = [];//选项列表
+        if (className("ListView").exists()) {
+            className("ListView").findOne().children().forEach(child => {
+                var answer_q = child.child(0).child(1).text();
+                options.push(answer_q);
+            });
+            }else {
+            console.error("答案获取失败!");
+            return;
+            }//20201217添加 极低概率下，答题数足够，下一题随机点击，碰到字形题
+            if (question == ZiXingTi.replace(/\s/g, "") || question == DuYinTi.replace(/\s/g, "") || question == ErShiSiShi.replace(/\s/g, "")) {
+            question = question + options[0];//字形题 读音题 在题目后面添加第一选项               
+                    }
+            console.log((conNum + 1).toString() + ".随机点击题目：" + question);
+            sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
+            listArray[i].child(0).click();//随意点击一个答案
+            ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
+            console.log("随机点击:"+ClickAnswer);
+            //如果随机点击答案正确，则更新到本地题库tiku表
+        sleep(500);//等待0.5秒，是否出现X
+        if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
+                "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
+            {console.info("更新本地题库答案...");
+            checkAndUpdate(question, answer, ClickAnswer);
+            }
+            console.log("---------------------------");
+            return;
+        }
+        if (className("ListView").exists()) {
+            var question = className("ListView").findOnce().parent().child(0).text();
+        }
+        else {
+            console.error("提取题目失败!");
+            let listArray = className("ListView").findOnce().children();//题目选项列表
+            let i = random(0, listArray.length - 1);
+            console.log("随机点击");
+            sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
+            listArray[i].child(0).click();//随意点击一个答案
+            return;
+        }
+        var chutiIndex = question.lastIndexOf("出题单位");
+        if (chutiIndex != -1) {
+            question = question.substring(0, chutiIndex - 2);
+        }
         question = question.replace(/\s/g, "");
         var options = [];//选项列表
-       if (className("ListView").exists()) {
-         className("ListView").findOne().children().forEach(child => {
-            var answer_q = child.child(0).child(1).text();
-            options.push(answer_q);
-          });
+        if (className("ListView").exists()) {
+            className("ListView").findOne().children().forEach(child => {
+                var answer_q = child.child(0).child(1).text();
+                options.push(answer_q);
+            });
         }else {
-        console.error("答案获取失败!");
-        return;
-        }//20201217添加 极低概率下，答题数足够，下一题随机点击，碰到字形题
+            console.error("答案获取失败!");
+            return;
+        }
         if (question == ZiXingTi.replace(/\s/g, "") || question == DuYinTi.replace(/\s/g, "") || question == ErShiSiShi.replace(/\s/g, "")) {
-         question = question + options[0];//字形题 读音题 在题目后面添加第一选项               
-                }
-        console.log((conNum + 1).toString() + ".随机点击题目：" + question);
-        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
-        listArray[i].child(0).click();//随意点击一个答案
-        ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
-        console.log("随机点击:"+ClickAnswer);
-        //如果随机点击答案正确，则更新到本地题库tiku表
-       sleep(500);//等待0.5秒，是否出现X
-       if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
-            "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.info("更新本地题库答案...");
-          checkAndUpdate(question, answer, ClickAnswer);
+        question = question + options[0];//字形题 读音题 在题目后面添加第一选项               
+                    }
+        console.log((conNum + 1).toString() + "搜库题目：" + question);
+        var answer = getAnswer(question, 'tikuNet');
+        console.info("答案：" + answer);
+        if (/^[a-zA-Z]{1}$/.test(answer)) {//如果为ABCD形式
+            var indexAnsTiku = indexFromChar(answer.toUpperCase());
+            answer = options[indexAnsTiku];
+            console.log("answer from char=" + answer);
+            //ABCD形式转换为字符串答案;
+            var sql = "UPDATE tikuNet SET answer='" + answer + "' WHERE question LIKE '" + question + "'";
+            db.execSQL(sql);
+            console.warn("答案已转换，下次尝试验证");
+            
         }
-        console.log("---------------------------");
-        return;
-    }
-    if (className("ListView").exists()) {
-        var question = className("ListView").findOnce().parent().child(0).text();
-    }
-    else {
-        console.error("提取题目失败!");
+        let hasClicked = false;
         let listArray = className("ListView").findOnce().children();//题目选项列表
-        let i = random(0, listArray.length - 1);
-        console.log("随机点击");
-        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
-        listArray[i].child(0).click();//随意点击一个答案
-        return;
-    }
-    var chutiIndex = question.lastIndexOf("出题单位");
-    if (chutiIndex != -1) {
-        question = question.substring(0, chutiIndex - 2);
-    }
-    question = question.replace(/\s/g, "");
-    var options = [];//选项列表
-    if (className("ListView").exists()) {
-        className("ListView").findOne().children().forEach(child => {
-            var answer_q = child.child(0).child(1).text();
-            options.push(answer_q);
-        });
-    }else {
-        console.error("答案获取失败!");
-        return;
-    }
-    if (question == ZiXingTi.replace(/\s/g, "") || question == DuYinTi.replace(/\s/g, "") || question == ErShiSiShi.replace(/\s/g, "")) {
-      question = question + options[0];//字形题 读音题 在题目后面添加第一选项               
-                }
-    console.log((conNum + 1).toString() + "搜库题目：" + question);
-    var answer = getAnswer(question, 'tikuNet');
-    console.info("答案：" + answer);
-    if (/^[a-zA-Z]{1}$/.test(answer)) {//如果为ABCD形式
-        var indexAnsTiku = indexFromChar(answer.toUpperCase());
-        answer = options[indexAnsTiku];
-        console.log("answer from char=" + answer);
-        //ABCD形式转换为字符串答案;
-        var sql = "UPDATE tikuNet SET answer='" + answer + "' WHERE question LIKE '" + question + "'";
-        db.execSQL(sql);
-        console.warn("答案已转换，下次尝试验证");
-        
-    }
-    let hasClicked = false;
-    let listArray = className("ListView").findOnce().children();//题目选项列表
-    if (answer == "")//如果没找到答案
-    {
-        let i = random(0, listArray.length - 1);
-        console.error("没有找到答案，随机点击");
-        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
-        listArray[i].child(0).click();//随意点击一个答案
-        ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
-        hasClicked = true;
-        console.log("随机点击:"+ClickAnswer);//如果随机点击答案正确，则更新到本地题库tiku表
-       sleep(500);//等待0.5秒，是否出现X
-       if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
-            "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.info("更新本地题库答案...");
-          checkAndUpdate(question, answer, ClickAnswer);
-        }
-        console.log("---------------------------");
-    }
-    else//如果找到了答案
-    {
-        listArray.forEach(item => {
-            let listDescStr = item.child(0).child(1).text();
-            if (listDescStr == answer) {
-                sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
-                item.child(0).click();//点击答案
-                hasClicked = true;
-                sleep(500);//等待0.5秒，是否出现X
-              if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
-            "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-             {console.info("题库答案正确……");}
-              if (text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
-            "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-              {console.error("题库答案错误!!!");
-              var sql = "UPDATE tikuNet SET answer='" + null + "' WHERE question LIKE '" + question + "'";
-                db.execSQL(sql);
-                console.warn("删除答案");
-                sleep(2000);
-               }
-                console.log("---------------------------");
-            }
-        });
-    }
-    if (!hasClicked)//如果没有点击成功
-    {//因导致不能成功点击问题较多，故该部分不更新题库，大部分问题是题库题目适配为填空题或多选题或错误选项
-        console.error("未能成功点击，随机点击");
-        let i = random(0, listArray.length - 1);
-        sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
-        listArray[i].child(0).click();//随意点击一个答案
-        console.log("随机点击:"+ClickAnswer);
+        if (answer == "")//如果没找到答案
+        {
+            let i = random(0, listArray.length - 1);
+            console.error("没有找到答案，随机点击");
+            sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
+            listArray[i].child(0).click();//随意点击一个答案
+            ClickAnswer = listArray[i].child(0).child(1).text();;//记录已点击答案
+            hasClicked = true;
+            console.log("随机点击:"+ClickAnswer);//如果随机点击答案正确，则更新到本地题库tiku表
         sleep(500);//等待0.5秒，是否出现X
-       if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
-            "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.info("随机点击正确……");}
-       if (text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
-            "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
-        {console.error("随机点击错误!!!");
-               /*checkAndUpdate(question, answer, ClickAnswer);*/
-               }
-       console.log("---------------------------");
+        if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
+                "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
+            {console.info("更新本地题库答案...");
+            checkAndUpdate(question, answer, ClickAnswer);
+            }
+            console.log("---------------------------");
+        }
+        else//如果找到了答案
+        {
+            listArray.forEach(item => {
+                let listDescStr = item.child(0).child(1).text();
+                if (listDescStr == answer) {
+                    sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
+                    item.child(0).click();//点击答案
+                    hasClicked = true;
+                    sleep(500);//等待0.5秒，是否出现X
+                if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
+                "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
+                {console.info("题库答案正确……");}
+                if (text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
+                "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
+                {console.error("题库答案错误!!!");
+                var sql = "UPDATE tikuNet SET answer='" + null + "' WHERE question LIKE '" + question + "'";
+                    db.execSQL(sql);
+                    console.warn("删除答案");
+                    sleep(2000);
+                }
+                    console.log("---------------------------");
+                }
+            });
+        }
+        if (!hasClicked)//如果没有点击成功
+        {//因导致不能成功点击问题较多，故该部分不更新题库，大部分问题是题库题目适配为填空题或多选题或错误选项
+            console.error("未能成功点击，随机点击");
+            let i = random(0, listArray.length - 1);
+            sleep(random(0.5, 1)*2000);//随机延时0.25-0.5秒
+            listArray[i].child(0).click();//随意点击一个答案
+            console.log("随机点击:"+ClickAnswer);
+            sleep(500);//等待0.5秒，是否出现X
+        if (!text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
+                "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
+            {console.info("随机点击正确……");}
+        if (text("v5IOXn6lQWYTJeqX2eHuNcrPesmSud2JdogYyGnRNxujMT8RS7y43zxY4coWepspQkvw" +
+                "RDTJtCTsZ5JW+8sGvTRDzFnDeO+BcOEpP0Rte6f+HwcGxeN2dglWfgH8P0C7HkCMJOAAAAAElFTkSuQmCC").exists() || text("再来一局").exists())//遇到❌号，则答错了,不再通过结束本局字样判断
+            {console.error("随机点击错误!!!");
+                /*checkAndUpdate(question, answer, ClickAnswer);*/
+                }
+        console.log("---------------------------");
+        }
+    } catch (error) {
+        log(error);
+        stop_app();
     }
 }
-
 /**
  * @description: 从数据库中搜索答案
  * @param: question 问题
@@ -2883,46 +2662,25 @@ function clickByAnswer(answer) {
  * @return: null
  */
 function checkAndUpdate(question, ansTiku, answer) {
-    var dw = device.width;
-    var dh = device.height;
-    if (className("Button").desc("下一题").exists() || className("Button").desc("完成").exists()) {//答错了
-        swipe(100, dh - 100, 100, 100, 500);
-        var nCout = 0
-        while (nCout < 5) {
-            if (descStartsWith("正确答案").exists()) {
-                var correctAns = descStartsWith("正确答案").findOnce().desc().substr(5);
-                console.info("正确答案是：" + correctAns);
-                if (ansTiku == "") {//题库为空则插入正确答案                
-                    var sql = "INSERT INTO tikuNet (question, answer) VALUES (?, ?)";
-                }else {//更新题库答案
-                    var sql = "UPDATE tikuNet SET answer='" + correctAns + "' WHERE question LIKE '" + question + "'";
-                }
-                db.execSQL(sql);
-                console.info("更新题库答案...");
-                sleep(1000);
-                break;
-            }else {
-                var clickPos = className("android.webkit.WebView").findOnce().child(2).child(0).child(1).bounds();
-                click(clickPos.left + dw * 0.13, clickPos.top + dh * 0.1);
-                console.error("未捕获正确答案，尝试修正");
-            }
-            nCout++;
-        }
-        if (className("Button").exists()) {
-            className("Button").findOnce().click();
-        }else {
-            click(dw * 0.85, dh * 0.06);
-        }
-    }else {//正确后进入下一题，或者进入再来一局界面
-        if (ansTiku == "" && answer != "") {//正确进入下一题，且题库答案为空              
-            // var sql = "INSERT INTO tikuNet VALUES ('" + question + "','" + answer + "','')";
-            var sql = "INSERT INTO tikuNet (question, answer) VALUES (?, ?)";
-            db.execSQL(sql);
-            console.info("更新题库答案");
-        }
-    }
-}
+    console.info("正确答案是：" + answer);
+    let db = SQLiteDatabase.openOrCreateDatabase(files.path("tiku.db"),null);
+    let sql ="SELECT * FROM  tikuNet WHERE question = '" + question + "' AND answer = '" + answer + "'";//数据库数据存在指令
+    let cursor = db.rawQuery(sql, null);
+    let res = cursor.moveToFirst();
+    cursor.close();
 
+    if(res == false ){
+        log("题库不存在,更新题库")
+        sql ="UPDATE tikuNet SET answer='" + answer + "' WHERE question LIKE '" + question + "'";//更新题库答案
+        if (ansTiku == "") {//题库为空则插入正确答案                
+        sql = "INSERT INTO tikuNet (question, answer) VALUES ('" + question + "', '" + answer + "')";
+        };
+        db.execSQL(sql);
+        console.info("更新题库答案...");
+        }
+    else console.info("题库存在,不用更新");
+    
+}
 
 function main() {
     auto.waitFor();//等待获取无障碍辅助权限
@@ -3004,8 +2762,13 @@ function start_app() {
 
      console.log("延时5秒等待APP加载");
      sleep(5000);//如果已清理强国app后台，默认打开主页;如果未清理后台，3秒应该可以拉起强国app
-          //com.microvirt.launcher.Launcher;
+     if(!id("home_bottom_tab_button_work").exists())
+    {
+        console.log("在延时5秒等待APP加载");
+        sleep(5000);//如果已清理强国app后台，默认打开主页;如果未清理后台，3秒应该可以拉起强国app
+    }
      while (!id("home_bottom_tab_button_work").exists()){//返回到主页出现
+        if(text("退出").exists()) click("退出");
         back();
         sleep(1000);
     };
