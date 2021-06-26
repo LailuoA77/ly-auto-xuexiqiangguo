@@ -272,8 +272,10 @@ ui.menu.on("item_click", item => {
 
 // <---------------UI结束--------------->
 ui.click_me.on("click", ()=>{
-    toast("选择'自动学习强国'开启无障碍");
-    engines.execScript("选择'自动学习强国'开启无障碍","auto.waitFor();console.show();console.hide();");
+    toast("选择'影自强国'开启无障碍");
+    auto.waitFor();
+    console.show();
+    console.hide();
 });
 var thread = null;
 //查询
@@ -742,7 +744,7 @@ function video_timing_bailing(n, seconds) {
             swipe(dw/3*2,dh/6*5,dw/3*2,dh/6, 500);//往下翻（纵坐标从5/6处滑到1/6处）
             i--;
         }
-        sleep(900);
+        sleep(990);//延时函数，延时一秒左右，数字自行添加。
         console.clear();
         console.info("第" + (n + 1) + "个小视频已经观看" + (i + 1) + "秒,剩余" + (seconds - i - 1) + "秒!");
     }
@@ -1297,8 +1299,9 @@ function videoStudy_bailing() {
     click(vitem);
     sleep(5000);    
     if(textContains(":").exists()){
-        var a = textContains(":").findOne().parent().parent().parent();//根据控件搜索视频框，但部分手机不适配，改用下面坐标点击
-        a.click();
+        // var a = textContains(":").findOne().parent().parent().parent();//根据控件搜索视频框，但部分手机不适配，改用下面坐标点击
+        // a.click();
+        click(":");//兼容性程序，无法保证运行，需要者自行请修改
         toastLog("控件操作");
     }
     else{
