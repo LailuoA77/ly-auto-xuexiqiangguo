@@ -10,16 +10,16 @@ var dh = device.height;
 var margin = parseInt(dw * 0.02);
 
 //开屏提示 萘落修改
-var readme = files.read("./README.md");
-if (!files.exists(files.path("list.db-journal"))) {
-        alert("必读说明", readme);
-}
+//var readme = files.read("./README.md");
+//if (!files.exists(files.path("list.db-journal"))) {
+//        alert("必读说明", readme);
+//}
 //启动后自动更新
-var r = http.get("https://www.lynuo.cn:449/xxqg-ds.html");
-if(r.statusCode = 200) {
-    var update = r.body.string();
-    if (update != "ds01") engines.execScriptFile("upmain.js");
-}
+//var r = http.get("https://www.lynuo.cn:449/xxqg-ds.html");
+//if(r.statusCode = 200) {
+//    var update = r.body.string();
+//    if (update != "ds01") engines.execScriptFile("upmain.js");
+//}
 
 //载入配置 萘落修改于2021-6-15;
 var confi = files.read("./config.txt");
